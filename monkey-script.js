@@ -134,7 +134,9 @@ var courseEnhancer = {
         button.classList.add("btn", "btn-secondary", "dropdown-toggle");
         button.setAttribute("type", "button");
         button.setAttribute("data-toggle", "dropdown");
-        button.textContent = "Add features";
+        button.setAttribute("title", "Configure form");
+        button.innerHTML = "<i class=\"icon fa fa-wrench fa-fw\" role=\"img\"></i>";
+        // button.textContent = "Add features";
         widget.appendChild(button);
 
         let menucontainer = document.createElement("div");
