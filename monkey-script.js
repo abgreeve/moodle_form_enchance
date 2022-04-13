@@ -136,23 +136,32 @@ var courseEnhancer = {
         button.setAttribute("data-toggle", "dropdown");
         button.setAttribute("title", "Configure form");
         button.innerHTML = "<i class=\"icon fa fa-wrench fa-fw\" role=\"img\"></i>";
-        // button.textContent = "Add features";
         widget.appendChild(button);
 
         let menucontainer = document.createElement("div");
-        menucontainer.classList.add("dropdown-menu");
+        menucontainer.classList.add("dropdown-menu", "w-150", "mfe-menu-container");
         
-        // Insert a search form
-        let searchform = document.createElement("form");
-        let formdiv = document.createElement("div");
-        formdiv.classList.add("form-group");
-        // let 
-        // Then a divider
+        let searchform = document.createElement("div");
+        searchform.classList.add("input-group", "px-2");
+        let searchtextbox = document.createElement("input");
+        searchtextbox.setAttribute("type", "text");
+        searchtextbox.setAttribute("placeholder", "search");
+        searchtextbox.classList.add("form-control");
+        searchform.appendChild(searchtextbox);
+        searchtextbox.addEventListener("keyup", this.filterResults.bind(this));
+        menucontainer.appendChild(searchform);
 
-        for (groupitem of this.courseformdata) {
+        this.addCategories(this.courseformdata, menucontainer);
+
+        widget.appendChild(menucontainer);
+        return widget;
+    },
+
+    addCategories: function(data, menucontainer) {
+        for (let groupitem of data) {
 
             let menuitems = document.createElement("a");
-            menuitems.classList.add("dropdown-item");
+            menuitems.classList.add("dropdown-item", "moodle-form-item");
             menuitems.setAttribute("href", "#");
             menuitems.setAttribute("data-id", groupitem.id);
             menuitems.textContent = groupitem.title;
@@ -165,17 +174,8 @@ var courseEnhancer = {
                 menuitems.setAttribute("aria-current", "true");
             }
 
-            // Let's try adding another button to get to more fine detail
-            // let expand = document.createElement('button');
-            // expand.textContent = "+";
-            // expand.addEventListener("click", this.expandCategory);
-
             menucontainer.appendChild(menuitems);
-            // menucontainer.appendChild(expand);
-            
         }
-        widget.appendChild(menucontainer);
-        return widget;
     },
 
     toggleCategory: function(event) {
@@ -225,6 +225,10 @@ var courseEnhancer = {
 
             let citems = this.getCategoryItems(categoryid);
 
+            let divider = document.createElement("div");
+            divider.classList.add("dropdown-divider");
+            divider.setAttribute("data-parent-id", categoryid);
+            ourthing.parentNode.insertBefore(divider, ourthing.nextSibling);
             if (ourthing.hasAttribute("data-expanded") == false) {
                 for (let citem of citems) {
                     let menuitem = document.createElement("a");
@@ -250,6 +254,25 @@ var courseEnhancer = {
                 citem.remove();
             }
             ourthing.removeAttribute("data-expanded");
+        }
+    },
+
+    filterResults: function(event) {
+        let filterstring = event.currentTarget.value;
+        let menucontainer = document.querySelector('.mfe-menu-container');
+        let formitems = document.querySelectorAll(".moodle-form-item");
+        for (let fitem of formitems) {
+            fitem.remove();
+        }
+        // Add new results.
+        if (filterstring.length > 2) {
+
+            let temp = this.courseformdata.filter((category) => {
+                return (category.title.includes(filterstring));
+            });
+            this.addCategories(temp, menucontainer);
+        } else {
+            this.addCategories(this.courseformdata, menucontainer);
         }
     }
 };
