@@ -268,7 +268,9 @@ var courseEnhancer = {
         if (filterstring.length > 2) {
 
             let temp = this.courseformdata.filter((category) => {
-                return (category.title.includes(filterstring));
+                categorymatches = category.title.toLowerCase().includes(filterstring.toLowerCase());
+                subitemmatches = category.citems.filter(subitem => subitem.title.toLowerCase().includes(filterstring.toLowerCase())).length;
+                return  categorymatches || subitemmatches;
             });
             this.addCategories(temp, menucontainer);
         } else {
