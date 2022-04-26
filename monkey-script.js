@@ -13,13 +13,20 @@ var courseEnhancer = {
 
     courseformdata: [],
 
+    /**
+     * Builds up an array of information about the form on the page. Then adds the menu button for form configuration.
+     */
     init: function() {
         this.buildData();
         // window.console.log(this.courseformdata);
         this.addButton();
     },
 
+    /**
+     * Builds up courseformdata with information about the form, both categories and form elements.
+     */
     buildData: function() {
+        this.courseformdata = [];
         let mainarea = document.querySelector("#region-main");
         let data = mainarea.querySelector("form");
         let formdata = data.querySelectorAll("fieldset.collapsible");
@@ -58,11 +65,17 @@ var courseEnhancer = {
                         itemdata.classList.add('d-none');
                     }
                 }
-                
+
             }
         }
     },
 
+    /**
+     * Builds category items.
+     *
+     * @param      {<type>}  category A category node that contains form elements
+     * @return     {array} The category items.
+     */
     buildCItems: function(category) {
         let citems = category.getElementsByClassName("fitem");
         let categoryid = category.getAttribute("id");
@@ -109,6 +122,12 @@ var courseEnhancer = {
         // }
     },
 
+    /**
+     * Gets the category items in the courseformdata from a category id
+     *
+     * @param {int} categoryid  The categoryid
+     * @return {Array} The category items.
+     */
     getCategoryItems: function(categoryid) {
         for (let category of this.courseformdata) {
             if (category.id == categoryid) {
@@ -118,6 +137,9 @@ var courseEnhancer = {
         return [];
     },
 
+    /**
+     * Adds a dropdown menu to customise the form.
+     */
     addButton: function() {
         // Find area to add button. #region-main-box
         let mainregion = document.getElementById("region-main");
@@ -126,6 +148,11 @@ var courseEnhancer = {
 
     },
 
+    /**
+     * Creates the majority of the elements for the dropdown menu
+     *
+     * @return {<type>}  dropdown menu html
+     */
     createWidget: function() {
         // return the created widget to be appended.
         let widget = document.createElement("div");
@@ -140,7 +167,7 @@ var courseEnhancer = {
 
         let menucontainer = document.createElement("div");
         menucontainer.classList.add("dropdown-menu", "w-150", "mfe-menu-container");
-        
+
         let searchform = document.createElement("div");
         searchform.classList.add("input-group", "px-2");
         let searchtextbox = document.createElement("input");
@@ -157,6 +184,12 @@ var courseEnhancer = {
         return widget;
     },
 
+    /**
+     * Adds categories.
+     *
+     * @param {array} an array of container and item information in the format of courseformdata.
+     * @param {htmlelement}  menucontainer  The menucontainer with the data added as dropdown menu elements.
+     */
     addCategories: function(data, menucontainer) {
         for (let groupitem of data) {
 
@@ -248,12 +281,71 @@ var courseEnhancer = {
         if (event.keyCode == "37") {
             event.preventDefault();
             event.stopPropagation();
- 
+
             let citems = document.querySelectorAll("[data-parent-id="+ categoryid +"");
             for (let citem of citems) {
                 citem.remove();
             }
             ourthing.removeAttribute("data-expanded");
+        }
+    },
+
+    addFilteredCategories: function(list, container) {
+        for (let groupitem of list) {
+
+            let menuitems = document.createElement("a");
+            menuitems.classList.add("dropdown-item", "moodle-form-item");
+            menuitems.setAttribute("href", "#");
+            menuitems.setAttribute("data-id", groupitem.id);
+            menuitems.textContent = groupitem.title;
+            menuitems.addEventListener("click", this.toggleCategory.bind(this));
+            // This is not mobile accessible, but for now let's just add a key press to expand the section.
+            menuitems.addEventListener("keydown", this.expandCategory.bind(this));
+
+
+            if (localStorage.getItem(groupitem.id) == 'open') {
+                menuitems.setAttribute("aria-current", "true");
+            }
+
+            container.appendChild(menuitems);
+            // window.console.log(menuitems);
+            this.openCategory(groupitem.id, menuitems);
+        }
+    },
+
+    openCategory: function(categoryid, categorynode) {
+        let citems = this.getCategoryItems(categoryid);
+        // window.console.log(citems);
+
+        let divider = document.createElement("div");
+        divider.classList.add("dropdown-divider");
+        divider.setAttribute("data-parent-id", categoryid);
+        categorynode.parentNode.insertBefore(divider, categorynode.nextSibling);
+        if (categorynode.hasAttribute("data-expanded") == false) {
+            for (let citem of citems) {
+                let menuitem = document.createElement("a");
+                menuitem.classList.add("dropdown-item");
+                menuitem.setAttribute("href", "#");
+                menuitem.setAttribute("data-id", citem.id);
+                menuitem.setAttribute("data-parent-id", categoryid);
+                menuitem.setAttribute("style", "font-size: x-small");
+                menuitem.textContent = citem.title;
+                menuitem.addEventListener('click', this.toggleItem);
+                categorynode.parentNode.insertBefore(menuitem, categorynode.nextSibling);
+                categorynode.setAttribute("data-expanded", "true");
+            }
+        }
+    },
+
+    closeCategories: function() {
+        for (let category of this.courseformdata) {
+
+            let categorynode = document.querySelector("[data-id="+ category.id +"");
+            let citems = document.querySelectorAll("[data-parent-id="+ category.id +"");
+            for (let citem of citems) {
+                citem.remove();
+            }
+            // categorynode.removeAttribute("data-expanded");
         }
     },
 
@@ -264,15 +356,43 @@ var courseEnhancer = {
         for (let fitem of formitems) {
             fitem.remove();
         }
+
+        // Always need to collapse categories.
+        this.closeCategories();
+        // Reset core data as well here?
+        this.buildData();
+
         // Add new results.
         if (filterstring.length > 2) {
 
+            let supertmep = [];
+
             let temp = this.courseformdata.filter((category) => {
                 categorymatches = category.title.toLowerCase().includes(filterstring.toLowerCase());
-                subitemmatches = category.citems.filter(subitem => subitem.title.toLowerCase().includes(filterstring.toLowerCase())).length;
-                return  categorymatches || subitemmatches;
+                subitemmatches = category.citems.filter(subitem => subitem.title.toLowerCase().includes(filterstring.toLowerCase()));
+                supertmep.push(subitemmatches);
+                return  categorymatches || subitemmatches.length;
             });
-            this.addCategories(temp, menucontainer);
+
+            let newtemp = temp.map((category) => {
+                category.citems = [];
+                return category;
+            });
+
+            for (let key in supertmep) {
+                if (supertmep[key].length > 0) {
+                    let awesomelist = newtemp.map((category) => {
+                        if (category.id == this.courseformdata[key].id) {
+                            category.citems = supertmep[key];
+                        }
+                        return category;
+                    });
+                    newtemp = awesomelist;
+                }
+            }
+            // window.console.log(newtemp);
+            // Let's replace this with a new method that can be improved later.
+            this.addFilteredCategories(temp, menucontainer);
         } else {
             this.addCategories(this.courseformdata, menucontainer);
         }
