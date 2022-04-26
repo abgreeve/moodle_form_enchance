@@ -227,6 +227,11 @@ var courseEnhancer = {
                 itemobject.classList.remove('d-none');
                 localStorage.setItem(citem.id, "open");
             }
+            // lets try and click the expand event.
+            let tester = category.querySelector('.icons-collapse-expand');
+            if (tester.getAttribute('aria-expanded') == "false") {
+                tester.click();
+            }
         } else {
             category.classList.add('d-none');
             localStorage.removeItem(thing);
@@ -239,7 +244,11 @@ var courseEnhancer = {
         event.stopPropagation();
         let itemid = event.currentTarget.getAttribute('data-id');
         let citem = document.getElementById(itemid);
+        let parentid = event.currentTarget.getAttribute('data-parent-id');
+        // Force open category if not done yet.
+        this.enableCategory(parentid);
         if (citem.classList.contains('d-none')) {
+
             citem.classList.remove('d-none');
             localStorage.setItem(itemid, 'open');
         } else {
@@ -271,7 +280,7 @@ var courseEnhancer = {
                     menuitem.setAttribute("data-parent-id", categoryid);
                     menuitem.setAttribute("style", "font-size: x-small");
                     menuitem.textContent = citem.title;
-                    menuitem.addEventListener('click', this.toggleItem);
+                    menuitem.addEventListener('click', this.toggleItem.bind(this));
                     ourthing.parentNode.insertBefore(menuitem, ourthing.nextSibling);
                     ourthing.setAttribute("data-expanded", "true");
                 }
@@ -308,14 +317,12 @@ var courseEnhancer = {
             }
 
             container.appendChild(menuitems);
-            // window.console.log(menuitems);
             this.openCategory(groupitem.id, menuitems);
         }
     },
 
     openCategory: function(categoryid, categorynode) {
         let citems = this.getCategoryItems(categoryid);
-        // window.console.log(citems);
 
         let divider = document.createElement("div");
         divider.classList.add("dropdown-divider");
@@ -330,7 +337,7 @@ var courseEnhancer = {
                 menuitem.setAttribute("data-parent-id", categoryid);
                 menuitem.setAttribute("style", "font-size: x-small");
                 menuitem.textContent = citem.title;
-                menuitem.addEventListener('click', this.toggleItem);
+                menuitem.addEventListener('click', this.toggleItem.bind(this));
                 categorynode.parentNode.insertBefore(menuitem, categorynode.nextSibling);
                 categorynode.setAttribute("data-expanded", "true");
             }
@@ -346,6 +353,26 @@ var courseEnhancer = {
                 citem.remove();
             }
             // categorynode.removeAttribute("data-expanded");
+        }
+    },
+
+    /**
+     * This makes an already expanded category active.
+     *
+     * @param      {<type>}  categoryid  The categoryid
+     */
+    enableCategory: function(categoryid) {
+        let category = document.querySelector("[data-id=" + categoryid + "");
+        if (category.hasAttribute('aria-current') == false) {
+            category.setAttribute('aria-current', 'true');
+            let categoryformitem = document.getElementById(categoryid);
+            categoryformitem.classList.remove('d-none');
+            localStorage.setItem(categoryid, 'open');
+            categoryformitem.setAttribute('aria-current', "true");
+            let tester = categoryformitem.querySelector('.icons-collapse-expand');
+            if (tester.getAttribute('aria-expanded') == "false") {
+                tester.click();
+            }
         }
     },
 
@@ -390,7 +417,6 @@ var courseEnhancer = {
                     newtemp = awesomelist;
                 }
             }
-            // window.console.log(newtemp);
             // Let's replace this with a new method that can be improved later.
             this.addFilteredCategories(temp, menucontainer);
         } else {
