@@ -20,6 +20,7 @@ var courseEnhancer = {
         this.buildData();
         // window.console.log(this.courseformdata);
         this.addButton();
+        document.addEventListener('keydown', this.shortcut);
     },
 
     /**
@@ -67,6 +68,21 @@ var courseEnhancer = {
                 }
 
             }
+        }
+    },
+
+    shortcut: function(event) {
+        let keypressed = event.keyCode;
+        if (event.ctrlKey && keypressed == 82) {
+            event.preventDefault();
+            // Let's do it.
+            // window.console.log(keypressed);
+            let dropdown = document.querySelector("[data-name=\"form-enhance\"");
+            dropdown.click();
+            let search = document.querySelector("[data-name=\"search\"");
+            search.value = "";
+            window.console.log(search);
+            search.focus();
         }
     },
 
@@ -161,6 +177,7 @@ var courseEnhancer = {
         button.classList.add("btn", "btn-secondary", "dropdown-toggle");
         button.setAttribute("type", "button");
         button.setAttribute("data-toggle", "dropdown");
+        button.setAttribute("data-name", "form-enhance");
         button.setAttribute("title", "Configure form");
         button.innerHTML = "<i class=\"icon fa fa-wrench fa-fw\" role=\"img\"></i>";
         widget.appendChild(button);
@@ -173,6 +190,7 @@ var courseEnhancer = {
         let searchtextbox = document.createElement("input");
         searchtextbox.setAttribute("type", "text");
         searchtextbox.setAttribute("placeholder", "search");
+        searchtextbox.setAttribute("data-name", "search");
         searchtextbox.classList.add("form-control");
         searchform.appendChild(searchtextbox);
         searchtextbox.addEventListener("keyup", this.filterResults.bind(this));
